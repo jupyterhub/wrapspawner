@@ -195,7 +195,10 @@ class ProfilesSpawner(WrapSpawner):
         super().construct_child()
 
     def load_child_class(self, state):
-        self.child_profile = state['profile']
+        try:
+            self.child_profile = state['profile']
+        except KeyError:
+            raise KeyError('jupyterhub database might be outdated, please reset it, in the default configuration, just delete jupyterhub.sqlite')
         self.select_profile(self.child_profile)
 
     def get_state(self):
