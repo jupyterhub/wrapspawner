@@ -39,20 +39,12 @@ configuration of Spawner classes while permitting:
 
 ### Example
 
-The following is based on the author's configuration using [batchspawner](https://github.com/jupyterhub/batchspawner)
-showing how to give users access to multiple job configurations on the batch scheduled
-clusters, as well as an option to run a local notebook directly on the jupyterhub server.
+The following is used to provide to the user a way to choose from a dropdown menu either to run a Jupyter Notebook
+as a local process in the local server or choose 2 different Docker Images to run within `DockerSpawner`.
 
    ```python
    c.JupyterHub.spawner_class = 'wrapspawner.ProfilesSpawner'
    c.Spawner.http_timeout = 120
-   #------------------------------------------------------------------------------
-   # BatchSpawnerBase configuration
-   #   Providing default values that we may omit in the profiles
-   #------------------------------------------------------------------------------
-   c.BatchSpawnerBase.req_host = 'mesabi.xyz.edu'
-   c.BatchSpawnerBase.req_runtime = '12:00:00'
-   c.TorqueSpawner.state_exechost_exp = r'in-\1.mesabi.xyz.edu'
    #------------------------------------------------------------------------------
    # ProfilesSpawner configuration
    #------------------------------------------------------------------------------
@@ -64,16 +56,9 @@ clusters, as well as an option to run a local notebook directly on the jupyterhu
    # The first three values will be exposed in the input_template as {display},
    # {key}, and {type}
    #
-   c.ProfilesSpawner.profiles = [
-      ( "Local server", 'local', 'jupyterhub.spawner.LocalProcessSpawner', {'ip':'0.0.0.0'} ),
-      ('Mesabi - 2 cores, 4 GB, 8 hours', 'mesabi2c4g12h', 'batchspawner.TorqueSpawner',
-         dict(req_nprocs='2', req_queue='mesabi', req_runtime='8:00:00', req_memory='4gb')),
-      ('Mesabi - 12 cores, 128 GB, 4 hours', 'mesabi128gb', 'batchspawner.TorqueSpawner',
-         dict(req_nprocs='12', req_queue='ram256g', req_runtime='4:00:00', req_memory='125gb')),
-      ('Mesabi - 2 cores, 4 GB, 24 hours', 'mesabi2c4gb24h', 'batchspawner.TorqueSpawner',
-         dict(req_nprocs='2', req_queue='mesabi', req_runtime='24:00:00', req_memory='4gb')),
-      ('Interactive Cluster - 2 cores, 4 GB, 8 hours', 'lab', 'batchspawner.TorqueSpawner',
-         dict(req_nprocs='2', req_host='labhost.xyz.edu', req_queue='lab',
-             req_runtime='8:00:00', req_memory='4gb', state_exechost_exp='')),
-      ]
+    c.ProfilesSpawner.profiles = [
+          ( "Host process", 'local', 'jupyterhub.spawner.LocalProcessSpawner', {'ip':'0.0.0.0'} ),
+          ('Docker Python 2/3', 'systemuser', 'dockerspawner.SystemUserSpawner', dict(container_image="jupyterhub/systemuser")),
+          ('Docker Python 2/3,R,Julia', 'datasciencesystemuser', 'dockerspawner.SystemUserSpawner', dict(container_image="jupyterhub/datasciencesystemuser")),
+    ]
    ```
