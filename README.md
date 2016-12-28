@@ -62,3 +62,5 @@ as a local process in the local server or choose 2 different Docker Images to ru
           ('Docker Python 2/3,R,Julia', 'datasciencesystemuser', 'dockerspawner.SystemUserSpawner', dict(container_image="jupyterhub/datasciencesystemuser")),
     ]
    ```
+
+These mechanisms originated as part of the [`batchspawner`](https://github.com/jupyterhub/batchspawner) package. The `batchspawner` README contains additional examples on the use of ProfilesSpawner.
