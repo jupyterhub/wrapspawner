@@ -9,7 +9,7 @@ This package includes WrapSpawner and ProfilesSpawner, which provide mechanisms 
 1. from root directory of this repo (where setup.py is), run `pip install -e .`
 
    If you don't actually need an editable version, you can simply run 
-      `pip install https://github.com/jupyterhub/wrapspawner`
+      `pip install git+https://github.com/jupyterhub/wrapspawner`
 
 2. add lines in `jupyterhub_config.py` for the spawner you intend to use, e.g.
    
