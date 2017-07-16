@@ -2,16 +2,19 @@
 
 [![Build Status](https://travis-ci.org/jupyterhub/wrapspawner.svg?branch=master)](https://travis-ci.org/jupyterhub/wrapspawner)
 
-This package includes WrapSpawner and ProfilesSpawner, which provide mechanisms for runtime configuration of spawners.  The inspiration for their development was to allow users to select from a range of pre-defined batch job profiles, but their operation is completely generic.
+This package includes **WrapSpawner** and ProfilesSpawner, which provide mechanisms for runtime configuration of spawners. 
+The inspiration for their development was to allow users to select from a range of pre-defined batch job profiles, but
+their operation is completely generic.
 
 ## Installation
 
-1. from root directory of this repo (where setup.py is), run `pip install -e .`
+1. From root directory of this repo (where setup.py is), run `pip install -e .`
 
-   If you don't actually need an editable version, you can simply run 
+   If you don't actually need an editable version, you can simply run:
+   
       `pip install git+https://github.com/jupyterhub/wrapspawner`
 
-2. add lines in `jupyterhub_config.py` for the spawner you intend to use, e.g.
+2. Add lines in `jupyterhub_config.py` for the spawner you intend to use, e.g.
    
    ```python
       c = get_config()
@@ -33,6 +36,7 @@ by the wrapped Spawner class.
 
 `ProfilesSpawner` leverages the `Spawner` options form feature to allow user-driven
 configuration of Spawner classes while permitting:
+
    * configuration of Spawner classes that don't natively implement `options_form`
    * administrator control of allowed configuration changes
    * runtime choice of which Spawner backend to launch
@@ -63,4 +67,7 @@ as a local process in the local server or choose 2 different Docker Images to ru
     ]
    ```
 
-These mechanisms originated as part of the [`batchspawner`](https://github.com/jupyterhub/batchspawner) package. The `batchspawner` README contains additional examples on the use of ProfilesSpawner.
+## History
+
+These mechanisms originated as part of the [`batchspawner`](https://github.com/jupyterhub/batchspawner) package.
+The `batchspawner` README contains additional examples on the use of ProfilesSpawner.
