@@ -2,7 +2,7 @@
 
 [![Build Status](https://travis-ci.org/jupyterhub/wrapspawner.svg?branch=master)](https://travis-ci.org/jupyterhub/wrapspawner)
 
-This package includes **WrapSpawner** and ProfilesSpawner, which provide mechanisms for runtime configuration of spawners. 
+This package includes **WrapSpawner** and **ProfilesSpawner**, which provide mechanisms for runtime configuration of spawners. 
 The inspiration for their development was to allow users to select from a range of pre-defined batch job profiles, but
 their operation is completely generic.
 
@@ -26,15 +26,17 @@ their operation is completely generic.
 
 ### Overview
 
-`WrapSpawner` provides a mechanism to wrap the interface of a Spawner such that
+[`WrapSpawner`](https://github.com/jupyterhub/wrapspawner/blob/master/wrapspawner/wrapspawner.py#L1)
+provides a mechanism to wrap the interface of a JupyterHub Spawner such that
 the Spawner class to use for single-user servers can be chosen dynamically.
 Subclasses may modify the class or properties of the child Spawner at any point
 before `start()` is called (e.g. from Authenticator `pre_spawn` hooks or options form 
-processing) and that state will be preserved on restart. The start/stop/poll
+processing) and that state will be preserved on restart. The `start/stop/poll`
 methods are not real coroutines, but simply pass through the Futures returned
 by the wrapped Spawner class.
 
-`ProfilesSpawner` leverages the `Spawner` options form feature to allow user-driven
+[`ProfilesSpawner`](https://github.com/jupyterhub/wrapspawner/blob/master/wrapspawner/wrapspawner.py#L120)
+leverages JupyterHub's `Spawner` "options form" feature to allow user-driven
 configuration of Spawner classes while permitting:
 
    * configuration of Spawner classes that don't natively implement `options_form`
