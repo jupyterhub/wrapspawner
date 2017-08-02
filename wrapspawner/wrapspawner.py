@@ -175,8 +175,17 @@ class ProfilesSpawner(WrapSpawner):
         text = ''.join([ self.input_template.format(**tk) for tk in temp_keys ])
         return self.form_template.format(input_template=text)
 
-    def options_from_form(self, formdata):
+   def options_from_form(self, formdata):
         # Default to first profile if somehow none is provided
+        opts = formdata.copy()
+        if 'profile' in opts: del opts['profile']
+        for opt in opts:
+            val = opts.get(opt, [''])
+            opts[opt]=val[0]
+        if len(opts)>0:
+            self.child_config=opts
+        else:
+            self.child_config={}
         return dict(profile=formdata.get('profile', [self.profiles[0][1]])[0])
 
     # load/get/clear : save/restore child_profile (and on load, use it to update child class/config)
@@ -186,7 +195,7 @@ class ProfilesSpawner(WrapSpawner):
         for p in self.profiles:
             if p[1] == profile:
                 self.child_class = p[2]
-                self.child_config = p[3]
+                self.child_config.update(p[3])
                 break
 
     def construct_child(self):
