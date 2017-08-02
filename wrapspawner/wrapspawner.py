@@ -175,7 +175,7 @@ class ProfilesSpawner(WrapSpawner):
         text = ''.join([ self.input_template.format(**tk) for tk in temp_keys ])
         return self.form_template.format(input_template=text)
 
-   def options_from_form(self, formdata):
+    def options_from_form(self, formdata):
         # Default to first profile if somehow none is provided
         opts = formdata.copy()
         if 'profile' in opts: del opts['profile']
