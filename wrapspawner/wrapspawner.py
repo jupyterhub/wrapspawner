@@ -21,7 +21,6 @@ selection of Spawner configurations.
 """
 
 import os
-import docker
 import json
 import re
 import urllib.request
@@ -32,6 +31,12 @@ from jupyterhub.spawner import LocalProcessSpawner, Spawner
 from traitlets import (
     Instance, Type, Tuple, List, Dict, Integer, Unicode, Float, Any
 )
+
+# Only needed for DockerProfilesSpawner
+try:
+    import docker
+except ImportError:
+    pass
 
 # Utility to create dummy Futures to return values through yields
 def _yield_val(x=None):
@@ -216,6 +221,14 @@ class ProfilesSpawner(WrapSpawner):
         self.child_profile = ''
 
 class DockerProfilesSpawner(ProfilesSpawner):
+
+    """DockerProfilesSpawner - leverages ProfilesSpawner to dynamically create DockerSpawner
+        profiles dynamically by looking for docker images that end with "jupyterhub". Due to the
+        profiles being dynamic the "profiles" config item from the ProfilesSpawner is renamed as
+        "default_profiles". Please note that the "docker" and DockerSpawner packages are required
+        for this spawner to work.
+    """
+
     default_profiles = List(
         trait = Tuple( Unicode(), Unicode(), Type(Spawner), Dict() ),
         default_value = [],
@@ -257,8 +270,11 @@ class DockerProfilesSpawner(ProfilesSpawner):
         return ("Docker: (%s): %s"%(nvidia_enabled, image), "docker-%s"%(image), "dockerspawner.SystemUserSpawner", spawner_args)
 
     def _jupyterhub_docker_tags(self):
-        include_jh_tags = lambda tag: self.jupyterhub_docker_tag_re.match(tag)
-        return filter(include_jh_tags, [tag for image in docker.from_env().images.list() for tag in image.tags])
+        try:
+            include_jh_tags = lambda tag: self.jupyterhub_docker_tag_re.match(tag)
+            return filter(include_jh_tags, [tag for image in docker.from_env().images.list() for tag in image.tags])
+        except NameError:
+            raise Exception('The docker package is not installed and is a dependency for DockerProfilesSpawner')
 
     def _docker_profiles(self):
         return [self._docker_profile(self._nvidia_args(), tag) for tag in self._jupyterhub_docker_tags()]
