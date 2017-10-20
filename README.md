@@ -45,8 +45,11 @@ configuration of Spawner classes while permitting:
 
 ### Example
 
-The following is used to provide to the user a way to choose from a dropdown menu either to run a Jupyter Notebook
-as a local process in the local server or choose 2 different Docker Images to run within `DockerSpawner`.
+Here is a screenshot of a typical dropdown menu letting the user choose between several SLURM instances:
+![](screenshot.png)
+
+The following configuration snippet lets the user choose between a Jupyter server
+running as a local process or one of two different Docker Images to run within `DockerSpawner`.
 
    ```python
    c.JupyterHub.spawner_class = 'wrapspawner.ProfilesSpawner'
