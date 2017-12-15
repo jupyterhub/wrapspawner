@@ -242,8 +242,8 @@ class FilteredSpawner(ProfilesSpawner):
         user = self.user.name
         cmd_result = subprocess.Popen("groups "+user, shell=True, stdout=subprocess.PIPE).stdout.read()
         #Get system default encoding
-		sys_encoding = sys.getdefaultencoding()
-		groups_list = cmd_result.decode(sys_encoding).split(':')[1].replace('\n', '').strip().split(' ')
+        sys_encoding = sys.getdefaultencoding()
+        groups_list = cmd_result.decode(sys_encoding).split(':')[1].replace('\n', '').strip().split(' ')
         return groups_list
     
     def _user_profiles(self):
