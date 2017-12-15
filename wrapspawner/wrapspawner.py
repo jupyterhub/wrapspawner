@@ -136,12 +136,12 @@ class ProfilesSpawner(WrapSpawner):
         3) runtime choice of which Spawner backend to launch
     """
     default_profiles = List(
-        trait = Tuple( Unicode(), Unicode(), Type(Spawner), Dict() ),
+        trait = Tuple( Unicode(), Unicode(), Type(Spawner), Dict(), Unicode() ),
         default_value = [],
         config = True,
         help = """List of profiles to offer in addition to docker images for selection. Signature is:
-                List(Tuple( Unicode, Unicode, Type(Spawner), Dict )) corresponding to
-                profile display name, unique key, Spawner class, dictionary of spawner config options.
+                List(Tuple( Unicode, Unicode, Type(Spawner), Dict , Unicode)) corresponding to
+                profile display name, unique key, Spawner class, dictionary of spawner config options, comma separated list of authorized groups.
                 The first three values will be exposed in the input_template as {display}, {key}, and {type}"""
         )
 
@@ -217,16 +217,31 @@ class ProfilesSpawner(WrapSpawner):
         super().clear_state()
         self.child_profile = ''
     
+    def get_user_groups(self):
+        import subprocess
+        user = self.user.name
+        cmd_result = subprocess.Popen("groups "+user, shell=True, stdout=subprocess.PIPE).stdout.read()
+        groups_list = cmd_result.decode('ascii').split(':')[1].replace('\n', '').strip().split(' ')
+        return groups_list
+    
     def _user_profiles(self):
-        #Simple test list to validate mechanism
-        test_list = [(self.user.name, 'sudospawner', 'sudospawner.SudoSpawner', {'cmd':['sudospawner-singleuser'], 'notebook_dir':''})]
-        return test_list
+        #Parse default_profiles and return a valid list
+        valid_profiles = []
+        for p in self.default_profiles:
+            #Parse authorized groups
+            authorized_groups = p[4].split(',')
+            user_groups = self.get_user_groups()
+            #Interesection between groups
+            groups_intersection = list(set(authorized_groups).intersection(user_groups))
+            #If groups_intersection is not empty, profile is authorized for user
+            if groups_intersection is not None and len(groups_intersection)>0:
+                valid_profiles.append((p[0], p[1], p[2], p[3]))
+        return valid_profiles
     
     @property
     def profiles(self):
-        #return self._user_profiles
         #New profiles are default profiles in addition to user_based profiles
-        return self.default_profiles + self._user_profiles()
+        return self._user_profiles()
 
 class DockerProfilesSpawner(ProfilesSpawner):
 
