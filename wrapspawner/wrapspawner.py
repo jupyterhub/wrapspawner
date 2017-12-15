@@ -135,18 +135,14 @@ class ProfilesSpawner(WrapSpawner):
         2) administrator control of allowed configuration changes
         3) runtime choice of which Spawner backend to launch
     """
-
-    profiles = List(
+    default_profiles = List(
         trait = Tuple( Unicode(), Unicode(), Type(Spawner), Dict() ),
-        default_value = [ ( 'Local Notebook Server', 'local', LocalProcessSpawner,
-                            {'start_timeout': 15, 'http_timeout': 10} ) ],
-        minlen = 1,
+        default_value = [],
         config = True,
-        help = """List of profiles to offer for selection. Signature is:
-            List(Tuple( Unicode, Unicode, Type(Spawner), Dict )) corresponding to
-            profile display name, unique key, Spawner class, dictionary of spawner config options.
-
-            The first three values will be exposed in the input_template as {display}, {key}, and {type}"""
+        help = """List of profiles to offer in addition to docker images for selection. Signature is:
+                List(Tuple( Unicode, Unicode, Type(Spawner), Dict )) corresponding to
+                profile display name, unique key, Spawner class, dictionary of spawner config options.
+                The first three values will be exposed in the input_template as {display}, {key}, and {type}"""
         )
 
     child_profile = Unicode()
@@ -193,6 +189,7 @@ class ProfilesSpawner(WrapSpawner):
 
     def select_profile(self, profile):
         # Select matching profile, or do nothing (leaving previous or default config in place)
+        print("Profiles type {}".format(type(self.profiles)))
         for p in self.profiles:
             if p[1] == profile:
                 self.child_class = p[2]
@@ -205,7 +202,7 @@ class ProfilesSpawner(WrapSpawner):
         super().construct_child()
 
     def load_child_class(self, state):
-        try:
+        try: 
             self.child_profile = state['profile']
         except KeyError:
             raise KeyError('jupyterhub database might be outdated, please reset it, in the default configuration, just delete jupyterhub.sqlite')
@@ -219,6 +216,17 @@ class ProfilesSpawner(WrapSpawner):
     def clear_state(self):
         super().clear_state()
         self.child_profile = ''
+    
+    def _user_profiles(self):
+        #Simple test list to validate mechanism
+        test_list = [(self.user.name, 'sudospawner', 'sudospawner.SudoSpawner', {'cmd':['sudospawner-singleuser'], 'notebook_dir':''})]
+        return test_list
+    
+    @property
+    def profiles(self):
+        #return self._user_profiles
+        #New profiles are default profiles in addition to user_based profiles
+        return self.default_profiles + self._user_profiles()
 
 class DockerProfilesSpawner(ProfilesSpawner):
 
