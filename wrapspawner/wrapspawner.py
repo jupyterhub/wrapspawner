@@ -251,6 +251,10 @@ class FilteredSpawner(ProfilesSpawner):
         valid_profiles = []
         for p in self.default_profiles:
             #Parse authorized groups
+            #If authorized_groups contained the all wildcard, pass it without groups check
+            if p[4] == '*':
+                valid_profiles.append((p[0], p[1], p[2], p[3]))            
+            #Check if profile is enabled for the user 
             authorized_groups = p[4].split(',')
             user_groups = self.get_user_groups()
             #Interesection between groups
