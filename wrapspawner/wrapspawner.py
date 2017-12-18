@@ -145,7 +145,6 @@ class ProfilesSpawner(WrapSpawner):
         help = """List of profiles to offer for selection. Signature is:
             List(Tuple( Unicode, Unicode, Type(Spawner), Dict )) corresponding to
             profile display name, unique key, Spawner class, dictionary of spawner config options.
-
             The first three values will be exposed in the input_template as {display}, {key}, and {type}"""
         )
 
@@ -220,6 +219,56 @@ class ProfilesSpawner(WrapSpawner):
         super().clear_state()
         self.child_profile = ''
 
+class FilteredSpawner(ProfilesSpawner):
+
+    """ProfilesSpawner - leverages the Spawner options form feature to allow user-driven
+        configuration of Spawner classes while permitting:
+        1) configuration of Spawner classes that don't natively implement options_form
+        2) administrator control of allowed configuration changes
+        3) runtime choice of which Spawner backend to launch
+    """
+    default_profiles = List(
+        trait = Tuple( Unicode(), Unicode(), Type(Spawner), Dict(), Unicode() ),
+        default_value = [],
+        config = True,
+        help = """List of profiles to offer in addition to docker images for selection. Signature is:
+                List(Tuple( Unicode, Unicode, Type(Spawner), Dict , Unicode)) corresponding to
+                profile display name, unique key, Spawner class, dictionary of spawner config options, comma separated list of authorized groups.
+                The first three values will be exposed in the input_template as {display}, {key}, and {type}"""
+        )
+    
+    def get_user_groups(self):
+        import subprocess, sys
+        user = self.user.name
+        cmd_result = subprocess.Popen("groups "+user, shell=True, stdout=subprocess.PIPE).stdout.read()
+        #Get system default encoding
+        sys_encoding = sys.getdefaultencoding()
+        groups_list = cmd_result.decode(sys_encoding).split(':')[1].replace('\n', '').strip().split(' ')
+        return groups_list
+    
+    def _user_profiles(self):
+        #Parse default_profiles and return a valid list
+        valid_profiles = []
+        for p in self.default_profiles:
+            #Parse authorized groups
+            #If authorized_groups contained the all wildcard, pass it without groups check
+            if p[4] == '*':
+                valid_profiles.append((p[0], p[1], p[2], p[3]))            
+            #Check if profile is enabled for the user 
+            authorized_groups = p[4].split(',')
+            user_groups = self.get_user_groups()
+            #Interesection between groups
+            groups_intersection = list(set(authorized_groups).intersection(user_groups))
+            #If groups_intersection is not empty, profile is authorized for user
+            if groups_intersection is not None and len(groups_intersection)>0:
+                valid_profiles.append((p[0], p[1], p[2], p[3]))
+        return valid_profiles
+    
+    @property
+    def profiles(self):
+        #New profiles are default profiles in addition to user_based profiles
+        return self._user_profiles()
+		
 class DockerProfilesSpawner(ProfilesSpawner):
 
     """DockerProfilesSpawner - leverages ProfilesSpawner to dynamically create DockerSpawner
