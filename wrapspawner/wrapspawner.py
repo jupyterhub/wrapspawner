@@ -135,6 +135,14 @@ class WrapSpawner(Spawner):
         else:
             return _yield_val(1)
 
+    if hasattr(Spawner, 'progress'):
+        @property
+        def progress(self):
+            if self.child_spawner:
+                return self.child_spawner.progress
+            else:
+                return self.progress
+
 class ProfilesSpawner(WrapSpawner):
 
     """ProfilesSpawner - leverages the Spawner options form feature to allow user-driven
