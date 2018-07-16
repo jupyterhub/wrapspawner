@@ -141,7 +141,7 @@ class WrapSpawner(Spawner):
             if self.child_spawner:
                 return self.child_spawner.progress
             else:
-                return self.progress
+                raise RuntimeError("No child spawner yet exists - can not get progress yet")
 
 class ProfilesSpawner(WrapSpawner):
 
