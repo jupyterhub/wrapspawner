@@ -129,6 +129,17 @@ class WrapSpawner(Spawner):
         else:
             return _yield_val(1)
 
+    # current_port proxy: batchspawner, #58 - select singleuser server
+    # on remote host
+    @property
+    def current_port(self):
+        return self.child_spawner.current_port
+
+    @current_port.setter
+    def current_port(self, value):
+        self.child_spawner.current_port = value
+
+
 class ProfilesSpawner(WrapSpawner):
 
     """ProfilesSpawner - leverages the Spawner options form feature to allow user-driven
