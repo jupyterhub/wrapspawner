@@ -31,6 +31,7 @@ from jupyterhub.spawner import LocalProcessSpawner, Spawner
 from traitlets import (
     Instance, Type, Tuple, List, Dict, Integer, Unicode, Float, Any
 )
+from traitlets import directional_link
 
 # Only needed for DockerProfilesSpawner
 try:
@@ -81,7 +82,12 @@ class WrapSpawner(Spawner):
             self.child_spawner.clear_state()
             if self.child_state:
                 self.child_spawner.load_state(self.child_state)
-            self.child_spawner.api_token = self.api_token
+
+            # link traits common between self and child
+            common_traits = (set(self._trait_values.keys()) &
+                             set(self.child_spawner._trait_values.keys()))
+            for trait in common_traits:
+                directional_link((self, trait), (self.child_spawner, trait))
         return self.child_spawner
 
     def load_child_class(self, state):
