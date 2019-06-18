@@ -17,7 +17,6 @@ their operation is completely generic.
 2. Add lines in `jupyterhub_config.py` for the spawner you intend to use, e.g.
    
    ```python
-      c = get_config()
       c.JupyterHub.spawner_class = 'wrapspawner.ProfilesSpawner'
    ```
 3. Depending on the spawner, additional configuration will likely be needed.
@@ -67,8 +66,8 @@ running as a local process or one of two different Docker Images to run within `
    #
     c.ProfilesSpawner.profiles = [
           ( "Host process", 'local', 'jupyterhub.spawner.LocalProcessSpawner', {'ip':'0.0.0.0'} ),
-          ('Docker Python 2/3', 'systemuser', 'dockerspawner.SystemUserSpawner', dict(container_image="jupyterhub/systemuser")),
-          ('Docker Python 2/3,R,Julia', 'datasciencesystemuser', 'dockerspawner.SystemUserSpawner', dict(container_image="jupyterhub/datasciencesystemuser")),
+          ('Docker Python 3', 'singleuser', 'dockerspawner.SystemUserSpawner', dict(image="jupyterhub/singleuser")),
+          ('Docker Python 3 Scipy', 'scipy-notebook', 'dockerspawner.SystemUserSpawner', dict(image="jupyter/scipy-notebook")),
     ]
    ```
 
