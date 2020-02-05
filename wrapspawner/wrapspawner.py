@@ -113,6 +113,7 @@ class WrapSpawner(Spawner):
         if self.child_spawner:
             self.child_spawner.clear_state()
         self.child_state = {}
+        self.child_config = {}
         self.child_spawner = None
 
     # proxy functions for start/poll/stop
