@@ -88,6 +88,9 @@ class WrapSpawner(Spawner):
                              set(self.child_spawner._trait_values.keys()))
             for trait in common_traits:
                 directional_link((self, trait), (self.child_spawner, trait))
+                # restore child_config settings overwritten by directional_link
+                if trait in self.child_config:
+                    self.child_spawner._trait_values[trait] = self.child_config[trait]
         return self.child_spawner
 
     def load_child_class(self, state):
