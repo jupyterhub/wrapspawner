@@ -84,8 +84,11 @@ class WrapSpawner(Spawner):
                 self.child_spawner.load_state(self.child_state)
 
             # link traits common between self and child
-            common_traits = (set(self._trait_values.keys()) &
-                             set(self.child_spawner._trait_values.keys()))
+            common_traits = (
+              set(self._trait_values.keys()) &
+              set(self.child_spawner._trait_values.keys()) -
+              set(self.child_config.keys())
+            )
             for trait in common_traits:
                 directional_link((self, trait), (self.child_spawner, trait))
         return self.child_spawner
