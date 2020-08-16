@@ -26,6 +26,7 @@ import re
 import urllib.request
 
 from tornado import gen, concurrent
+from async_generator import async_generator, yield_
 
 from jupyterhub.spawner import LocalProcessSpawner, Spawner
 from traitlets import (
@@ -138,6 +139,11 @@ class WrapSpawner(Spawner):
             return self.child_spawner.poll()
         else:
             return _yield_val(1)
+
+    @async_generator
+    async def progress(self):
+        async for event in self.child_spawner.progress():
+            await yield_(event)
 
 class ProfilesSpawner(WrapSpawner):
 
