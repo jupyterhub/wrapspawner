@@ -91,6 +91,7 @@ class WrapSpawner(Spawner):
             )
             for trait in common_traits:
                 directional_link((self, trait), (self.child_spawner, trait))
+            _ = self.child_spawner.server
         return self.child_spawner
 
     def load_child_class(self, state):
