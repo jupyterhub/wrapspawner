@@ -1,18 +1,17 @@
 # wrapspawner for Jupyterhub
 
-[![Build Status](https://travis-ci.org/jupyterhub/wrapspawner.svg?branch=master)](https://travis-ci.org/jupyterhub/wrapspawner)
-
 This package includes **WrapSpawner** and **ProfilesSpawner**, which provide mechanisms for runtime configuration of spawners. 
 The inspiration for their development was to allow users to select from a range of pre-defined batch job profiles, but
 their operation is completely generic.
 
 ## Installation
 
-1. From root directory of this repo (where setup.py is), run `pip install -e .`
+1. Most users can install via pip:
 
-   If you don't actually need an editable version, you can simply run:
-   
-      `pip install git+https://github.com/jupyterhub/wrapspawner`
+      `pip install wrapspawner`
+
+   To install an editable copy for development, from root directory of this repo (where setup.py is), run `pip install -e .`
+   See also [pip VCS support](https://pip.pypa.io/en/stable/reference/pip_install/#vcs-support) if you need a specific revision.
 
 2. Add lines in `jupyterhub_config.py` for the spawner you intend to use, e.g.
    
