@@ -176,6 +176,7 @@ class ProfilesSpawner(WrapSpawner):
         <select class="form-control" name="profile" required autofocus>
         {input_template}
         </select>
+        <textfield></textfield>
         """,
         config = True,
         help = """Template to use to construct options_form text. {input_template} is replaced with
@@ -311,5 +312,146 @@ class DockerProfilesSpawner(ProfilesSpawner):
         return self.form_template.format(input_template=text)
 
 
+class GDITSpawner(WrapSpawner):
+    """GDITSpawner
+
+    """
+
+    profiles = List(
+        trait=Tuple(Unicode(), Unicode(), Type(Spawner), Dict(), Unicode()),
+        default_value=[('Local Notebook Server', 'local', LocalProcessSpawner,
+                        {'start_timeout': 15, 'http_timeout': 10}, "")],
+        minlen=0,
+        config=True,
+        help="""List of profiles to offer for selection. Signature is:
+            List(Tuple( Unicode, Unicode, Type(Spawner), Dict )) corresponding to
+            profile display name, unique key, Spawner class, dictionary of spawner config options.
+
+            The first three values will be exposed in the input_template as {display}, {key}, and {type}"""
+    )
+
+    child_profile = Unicode()
+
+    form_template = Unicode(
+        """
+         <script type="application/javascript">
+         {batch_commands}
+         {select_handler}
+         </script>
+        <label for="profile">Select a job profile:</label>
+        <select onchange = "profile_selected()" id = "profile_selector" class="form-control" name="profile" required autofocus>
+        {input_template}
+        </select>
+        <textarea style ="height: 400px;"class="form-control" id="batch_command" name="batch_command">{batch_command}</textarea>
+        """,
+        config=True,
+        help="""Template to use to construct options_form text. {input_template} is replaced with
+            the result of formatting input_template against each item in the profiles list."""
+    )
+
+    first_template = Unicode('selected',
+                             config=True,
+                             help="Text to substitute as {first} in input_template"
+                             )
+
+    input_template = Unicode("""
+        <option id="{id}" value="{key}" {first}>{display}</option>""",
+                             config=True,
+                             help="""Template to construct {input_template} in form_template. This text will be formatted
+            against each item in the profiles list, in order, using the following key names:
+            ( display, key, type ) for the first three items in the tuple, and additionally
+            first = "checked" (taken from first_template) for the first item in the list, so that
+            the first item starts selected."""
+                             )
+
+    options_form = Unicode()
+
+    def _options_form_default(self):
+        self._load_profiles_from_fs()
+        temp_keys = [dict(display=p[0], key=p[1], type=p[2], id=p[1], first='') for p in self.profiles]
+        temp_keys[0]['first'] = self.first_template
+        text = ''.join([self.input_template.format(**tk) for tk in temp_keys])
+        batch_command = self.profiles[0][4]
+        batch_commands = dict()
+
+        for profile in self.profiles:
+            batch_commands[profile[1]] = profile[4]
+        batch_commands = json.dumps(batch_commands)
+        batch_commands = "var batch_commands = " + batch_commands
+        select_handler = """function profile_selected(){
+        var select = document.getElementById("profile_selector"); 
+        var batch_command_id = select[select.selectedIndex].id;
+        document.getElementById("batch_command").value = batch_commands[batch_command_id];
+        }"""
+        return self.form_template.format(input_template=text, batch_command=batch_command,
+                                         batch_commands=batch_commands,
+                                         select_handler=select_handler)
+
+    def options_from_form(self, formdata):
+        # Default to first profile if somehow none is provided
+        self._load_profiles_from_fs()
+        self.config['SlurmSpawner']['batch_script'] = str(formdata['batch_command'])
+        return dict(profile=formdata.get('profile', [self.profiles[0][1]])[0])
+
+    def _load_profiles_from_fs(self):
+        path = os.path.dirname(self.config.JupyterHub.config_file) + "/jupyterhub/profiles"
+        new_profiles = self._load_profiles(path, "System:")
+        self.profiles = new_profiles
+        path = os.path.expanduser('~') + "/../" + self.user.escaped_name + "/.jupyter/hub/profiles"
+        new_profiles = self._load_profiles(path, "User:")
+        for profile in new_profiles:
+            self.profiles.append(profile)
+
+        return
+
+    # load/get/clear : save/restore child_profile (and on load, use it to update child class/config)
+
+    def _load_profiles(self, filepath, prefix):
+        new_profiles = []
+        try:
+            files = os.listdir(filepath)
+            files = [filepath + "/" + f for f in files]
+            count = 0
+            for file in files:
+                count += 1
+                with open(file) as f:
+                    lines = f.readlines()
+                    f.seek(0)
+                    new_profiles.append(tuple((prefix + lines[1],
+                                               prefix + str(count), 'batchspawner.SlurmSpawner',
+                                               dict(req_nprocs='1', req_partition='compute', req_runtime='24:00:00'),
+                                               f.read())))
+        except Exception as e:
+            pass
+        return new_profiles
+
+    def select_profile(self, profile):
+        # Select matching profile, or do nothing (leaving previous or default config in place)
+        for p in self.profiles:
+            if p[1] == profile:
+                self.child_class = p[2]
+                self.child_config = p[3]
+                break
+
+    def construct_child(self):
+        self.child_profile = self.user_options.get('profile', "")
+        self.select_profile(self.child_profile)
+        super().construct_child()
+
+    def load_child_class(self, state):
+        try:
+            self.child_profile = state['profile']
+        except KeyError:
+            self.child_profile = ''
+        self.select_profile(self.child_profile)
+
+    def get_state(self):
+        state = super().get_state()
+        state['profile'] = self.child_profile
+        return state
+
+    def clear_state(self):
+        super().clear_state()
+        self.child_profile = ''
 # vim: set ai expandtab softtabstop=4:
 
