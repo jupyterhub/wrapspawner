@@ -417,7 +417,10 @@ class GDITSpawner(WrapSpawner):
                 with open(file) as f:
                     lines = f.readlines()
                     f.seek(0)
-                    new_profiles.append(tuple((prefix + lines[1],
+                    option = prefix + lines[1]
+                    option = option.replace("\n", "")
+                    option = re.sub("#JUPYTER", "",option, re.IGNORECASE)
+                    new_profiles.append(tuple((option,
                                                prefix + str(count), 'batchspawner.SlurmSpawner',
                                                dict(req_nprocs='1', req_partition='compute', req_runtime='24:00:00'),
                                                f.read())))
