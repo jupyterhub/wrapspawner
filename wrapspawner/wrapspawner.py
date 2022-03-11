@@ -373,8 +373,11 @@ class GDITSpawner(WrapSpawner):
             pass
         else:
             self.spawner_class = 'SlurmSpawner'
-        
-        pass
+
+        if 'system_profile_path' in kwargs['config']['GDITSpawner']:
+            self.system_profile_path = kwargs['config']['GDITSpawner']['system_profile_path']
+        else:
+            self.system_profile_path = os.path.dirname(self.config.JupyterHub.config_file) + "/jupyterhub/profiles"
 
     def _options_form_default(self):
         self._load_profiles_from_fs()
@@ -405,7 +408,7 @@ class GDITSpawner(WrapSpawner):
 
     def _load_profiles_from_fs(self):
         path = os.path.dirname(self.config.JupyterHub.config_file) + "/jupyterhub/profiles"
-        new_profiles = self._load_profiles(path, "System:")
+        new_profiles = self._load_profiles(self.system_profile_path, "System:")
         self.profiles = new_profiles
         path = os.path.expanduser('~') + "/../" + self.user.escaped_name + "/.jupyter/hub/profiles"
         new_profiles = self._load_profiles(path, "User:")
