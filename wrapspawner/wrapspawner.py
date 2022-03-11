@@ -379,6 +379,11 @@ class GDITSpawner(WrapSpawner):
         else:
             self.system_profile_path = os.path.dirname(self.config.JupyterHub.config_file) + "/jupyterhub/profiles"
 
+        if 'user_profile_path' in kwargs['config']['GDITSpawner']:
+            self.user_profile_path = kwargs['config']['GDITSpawner']['user_profile_path']
+        else:
+            self.user_profile_path = os.path.expanduser('~') + "/../"
+
     def _options_form_default(self):
         self._load_profiles_from_fs()
         temp_keys = [dict(display=p[0], key=p[1], type=p[2], id=p[1], first='') for p in self.profiles]
@@ -407,10 +412,9 @@ class GDITSpawner(WrapSpawner):
         return dict(profile=formdata.get('profile', [self.profiles[0][1]])[0])
 
     def _load_profiles_from_fs(self):
-        path = os.path.dirname(self.config.JupyterHub.config_file) + "/jupyterhub/profiles"
         new_profiles = self._load_profiles(self.system_profile_path, "System:")
         self.profiles = new_profiles
-        path = os.path.expanduser('~') + "/../" + self.user.escaped_name + "/.jupyter/hub/profiles"
+        path = self.user_profile_path + self.user.escaped_name + "/.jupyter/hub/profiles"
         new_profiles = self._load_profiles(path, "User:")
         for profile in new_profiles:
             self.profiles.append(profile)
