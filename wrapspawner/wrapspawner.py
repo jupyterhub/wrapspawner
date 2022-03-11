@@ -366,6 +366,16 @@ class GDITSpawner(WrapSpawner):
 
     options_form = Unicode()
 
+    def __init__(self, **kwargs):
+        super().__init__(**kwargs)
+        if 'spawner_class' in kwargs['config']['GDITSpawner']:
+            self.spawner_class = kwargs['config']['GDITSpawner']['spawner_class']
+            pass
+        else:
+            self.spawner_class = 'SlurmSpawner'
+        
+        pass
+
     def _options_form_default(self):
         self._load_profiles_from_fs()
         temp_keys = [dict(display=p[0], key=p[1], type=p[2], id=p[1], first='') for p in self.profiles]
@@ -390,7 +400,7 @@ class GDITSpawner(WrapSpawner):
     def options_from_form(self, formdata):
         # Default to first profile if somehow none is provided
         self._load_profiles_from_fs()
-        self.config['SlurmSpawner']['batch_script'] = str(formdata['batch_command'])
+        self.config[self.spawner_class]['batch_script'] = str(formdata['batch_command'])
         return dict(profile=formdata.get('profile', [self.profiles[0][1]])[0])
 
     def _load_profiles_from_fs(self):
@@ -421,7 +431,7 @@ class GDITSpawner(WrapSpawner):
                     option = option.replace("\n", "")
                     option = re.sub("#JUPYTER", "",option, re.IGNORECASE)
                     new_profiles.append(tuple((option,
-                                               prefix + str(count), 'batchspawner.SlurmSpawner',
+                                               prefix + str(count), 'batchspawner.' + self.spawner_class,
                                                dict(req_nprocs='1', req_partition='compute', req_runtime='24:00:00'),
                                                f.read())))
         except Exception as e:
