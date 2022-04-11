@@ -313,9 +313,15 @@ class DockerProfilesSpawner(ProfilesSpawner):
         return self.form_template.format(input_template=text)
 
 
-class GDITSpawner(WrapSpawner):
-    """GDITSpawner
-
+class CustomSpawner(WrapSpawner):
+    """CustomSpawner allows batch commands to be displayed and customized
+    before launch by a user via a HTML textfield.
+    These commands are divided into two categories: System and User.
+    System commands are available to all users, and User
+    commands are stored in the specific user's home directory. The filepaths
+    for these are set in the jupyterhub config by the following variables:
+    c.CustomSpawner.system_profile_path
+    c.CustomSpawner.user_profile_path
     """
 
     profiles = List(
@@ -382,21 +388,21 @@ class GDITSpawner(WrapSpawner):
 
     def __init__(self, **kwargs):
         super().__init__(**kwargs)
-        if 'spawner_class' in kwargs['config']['GDITSpawner']:
-            self.spawner_class = kwargs['config']['GDITSpawner']['spawner_class']
+        if 'spawner_class' in kwargs['config']['CustomSpawner']:
+            self.spawner_class = kwargs['config']['CustomSpawner']['spawner_class']
             pass
         else:
             self.spawner_class = 'SlurmSpawner'
 
-        if 'system_profile_path' in kwargs['config']['GDITSpawner']:
-            self.system_profile_path = kwargs['config']['GDITSpawner']['system_profile_path']
+        if 'system_profile_path' in kwargs['config']['CustomSpawner']:
+            self.system_profile_path = kwargs['config']['CustomSpawner']['system_profile_path']
         else:
             self.system_profile_path = os.path.dirname(self.config.JupyterHub.config_file) + "/jupyterhub/profiles"
 
-        if 'user_profile_path' in kwargs['config']['GDITSpawner']:
-            self.user_profile_path = kwargs['config']['GDITSpawner']['user_profile_path']
+        if 'user_profile_path' in kwargs['config']['CustomSpawner']:
+            self.user_profile_path = kwargs['config']['CustomSpawner']['user_profile_path']
         else:
-            self.user_profile_path = os.path.expanduser('~') + "/../"
+            self.user_profile_path = None
 
     def _options_form_default(self):
         self._load_profiles_from_fs()
@@ -429,18 +435,22 @@ class GDITSpawner(WrapSpawner):
         return dict(profile=formdata.get('profile', [self.profiles[0][1]])[0])
 
     def _load_profiles_from_fs(self):
+        '''This private function handles loading/re-loading custom profiles from
+        the System profile directory and User profile directory listed in the
+        configuration file.'''
         new_profiles = self._load_profiles(self.system_profile_path, "System:")
         self.profiles = new_profiles
-        path = self.user_profile_path + self.user.escaped_name + "/.jupyter/hub/profiles"
-        new_profiles = self._load_profiles(path, "User:")
-        for profile in new_profiles:
-            self.profiles.append(profile)
+        if self.user_profile_path is not None:
+            path = self.user_profile_path + self.user.escaped_name + "/.jupyter/hub/profiles"
+            new_profiles = self._load_profiles(path, "User:")
+            for profile in new_profiles:
+                self.profiles.append(profile)
 
         return
 
-    # load/get/clear : save/restore child_profile (and on load, use it to update child class/config)
-
     def _load_profiles(self, filepath, prefix):
+        '''This private function loads system profiles from the filepath specified,
+        pre-pending each one with the prefix passed in'''
         new_profiles = []
         try:
             files = os.listdir(filepath)
