@@ -39,29 +39,28 @@ try:
 except ImportError:
     pass
 
-
 # Utility to create dummy Futures to return values through yields
 def _yield_val(x=None):
     f = concurrent.Future()
     f.set_result(x)
     return f
 
-
 class WrapSpawner(Spawner):
+
     # Grab this from constructor args in case some Spawner ever wants it
     config = Any()
 
     child_class = Type(LocalProcessSpawner, Spawner,
-                       config=True,
-                       help="""The class to wrap for spawning single-user servers.
+        config=True,
+        help="""The class to wrap for spawning single-user servers.
                 Should be a subclass of Spawner.
                 """
-                       )
+        )
 
     child_config = Dict(default_value={},
-                        config=True,
-                        help="Dictionary of config values to apply to wrapped spawner class."
-                        )
+        config=True,
+        help="Dictionary of config values to apply to wrapped spawner class."
+        )
 
     child_state = Dict(default_value={})
 
@@ -70,15 +69,15 @@ class WrapSpawner(Spawner):
     def construct_child(self):
         if self.child_spawner is None:
             self.child_spawner = self.child_class(
-                user=self.user,
-                db=self.db,
-                hub=self.hub,
-                authenticator=self.authenticator,
-                oauth_client_id=self.oauth_client_id,
-                server=self._server,
-                config=self.config,
+                user = self.user,
+                db   = self.db,
+                hub  = self.hub,
+                authenticator = self.authenticator,
+                oauth_client_id = self.oauth_client_id,
+                server = self._server,
+                config = self.config,
                 **self.child_config
-            )
+                )
             # initial state will always be wrong since it will see *our* state
             self.child_spawner.clear_state()
             if self.child_state:
@@ -86,9 +85,9 @@ class WrapSpawner(Spawner):
 
             # link traits common between self and child
             common_traits = (
-                    set(self.trait_names()) &
-                    set(self.child_spawner.trait_names()) -
-                    set(self.child_config.keys())
+                set(self.trait_names()) &
+                set(self.child_spawner.trait_names()) -
+                set(self.child_config.keys())
             )
             for trait in common_traits:
                 directional_link((self, trait), (self.child_spawner, trait))
@@ -164,6 +163,7 @@ class WrapSpawner(Spawner):
 
 
 class ProfilesSpawner(WrapSpawner):
+
     """ProfilesSpawner - leverages the Spawner options form feature to allow user-driven
         configuration of Spawner classes while permitting:
         1) configuration of Spawner classes that don't natively implement options_form
@@ -172,17 +172,17 @@ class ProfilesSpawner(WrapSpawner):
     """
 
     profiles = List(
-        trait=Tuple(Unicode(), Unicode(), Type(Spawner), Dict()),
-        default_value=[('Local Notebook Server', 'local', LocalProcessSpawner,
-                        {'start_timeout': 15, 'http_timeout': 10})],
-        minlen=1,
-        config=True,
-        help="""List of profiles to offer for selection. Signature is:
+        trait = Tuple( Unicode(), Unicode(), Type(Spawner), Dict() ),
+        default_value = [ ( 'Local Notebook Server', 'local', LocalProcessSpawner,
+                            {'start_timeout': 15, 'http_timeout': 10} ) ],
+        minlen = 1,
+        config = True,
+        help = """List of profiles to offer for selection. Signature is:
             List(Tuple( Unicode, Unicode, Type(Spawner), Dict )) corresponding to
             profile display name, unique key, Spawner class, dictionary of spawner config options.
 
             The first three values will be exposed in the input_template as {display}, {key}, and {type}"""
-    )
+        )
 
     child_profile = Unicode()
 
@@ -191,34 +191,33 @@ class ProfilesSpawner(WrapSpawner):
         <select class="form-control" name="profile" required autofocus>
         {input_template}
         </select>
-        <textfield></textfield>
         """,
-        config=True,
-        help="""Template to use to construct options_form text. {input_template} is replaced with
+        config = True,
+        help = """Template to use to construct options_form text. {input_template} is replaced with
             the result of formatting input_template against each item in the profiles list."""
-    )
+        )
 
     first_template = Unicode('selected',
-                             config=True,
-                             help="Text to substitute as {first} in input_template"
-                             )
+        config=True,
+        help="Text to substitute as {first} in input_template"
+        )
 
     input_template = Unicode("""
         <option value="{key}" {first}>{display}</option>""",
-                             config=True,
-                             help="""Template to construct {input_template} in form_template. This text will be formatted
+        config = True,
+        help = """Template to construct {input_template} in form_template. This text will be formatted
             against each item in the profiles list, in order, using the following key names:
             ( display, key, type ) for the first three items in the tuple, and additionally
             first = "checked" (taken from first_template) for the first item in the list, so that
             the first item starts selected."""
-                             )
+        )
 
     options_form = Unicode()
 
     def _options_form_default(self):
-        temp_keys = [dict(display=p[0], key=p[1], type=p[2], first='') for p in self.profiles]
+        temp_keys = [ dict(display=p[0], key=p[1], type=p[2], first='') for p in self.profiles ]
         temp_keys[0]['first'] = self.first_template
-        text = ''.join([self.input_template.format(**tk) for tk in temp_keys])
+        text = ''.join([ self.input_template.format(**tk) for tk in temp_keys ])
         return self.form_template.format(input_template=text)
 
     def options_from_form(self, formdata):
@@ -256,8 +255,8 @@ class ProfilesSpawner(WrapSpawner):
         super().clear_state()
         self.child_profile = ''
 
-
 class DockerProfilesSpawner(ProfilesSpawner):
+
     """DockerProfilesSpawner - leverages ProfilesSpawner to dynamically create DockerSpawner
         profiles dynamically by looking for docker images that end with "jupyterhub". Due to the
         profiles being dynamic the "profiles" config item from the ProfilesSpawner is renamed as
@@ -266,20 +265,20 @@ class DockerProfilesSpawner(ProfilesSpawner):
     """
 
     default_profiles = List(
-        trait=Tuple(Unicode(), Unicode(), Type(Spawner), Dict()),
-        default_value=[],
-        config=True,
-        help="""List of profiles to offer in addition to docker images for selection. Signature is:
+        trait = Tuple( Unicode(), Unicode(), Type(Spawner), Dict() ),
+        default_value = [],
+        config = True,
+        help = """List of profiles to offer in addition to docker images for selection. Signature is:
             List(Tuple( Unicode, Unicode, Type(Spawner), Dict )) corresponding to
             profile display name, unique key, Spawner class, dictionary of spawner config options.
 
             The first three values will be exposed in the input_template as {display}, {key}, and {type}"""
-    )
+        )
 
     docker_spawner_args = Dict(
-        default_value={},
-        config=True,
-        help="Args to pass to DockerSpawner."
+        default_value = {},
+        config = True,
+        help = "Args to pass to DockerSpawner."
     )
 
     jupyterhub_docker_tag_re = re.compile('^.*jupyterhub$')
@@ -288,7 +287,7 @@ class DockerProfilesSpawner(ProfilesSpawner):
         try:
             resp = urllib.request.urlopen('http://localhost:3476/v1.0/docker/cli/json')
             body = resp.read().decode('utf-8')
-            args = json.loads(body)
+            args =  json.loads(body)
             return dict(
                 read_only_volumes={vol.split(':')[0]: vol.split(':')[1] for vol in args['Volumes']},
                 extra_create_kwargs={"volume_driver": args['VolumeDriver']},
@@ -297,13 +296,13 @@ class DockerProfilesSpawner(ProfilesSpawner):
         except urllib.error.URLError:
             return {}
 
+
     def _docker_profile(self, nvidia_args, image):
         spawner_args = dict(container_image=image, network_name=self.user.name)
         spawner_args.update(self.docker_spawner_args)
         spawner_args.update(nvidia_args)
         nvidia_enabled = "w/GPU" if len(nvidia_args) > 0 else "no GPU"
-        return ("Docker: (%s): %s" % (nvidia_enabled, image), "docker-%s" % (image), "dockerspawner.SystemUserSpawner",
-                spawner_args)
+        return ("Docker: (%s): %s"%(nvidia_enabled, image), "docker-%s"%(image), "dockerspawner.SystemUserSpawner", spawner_args)
 
     def _jupyterhub_docker_tags(self):
         try:
@@ -321,9 +320,9 @@ class DockerProfilesSpawner(ProfilesSpawner):
 
     @property
     def options_form(self):
-        temp_keys = [dict(display=p[0], key=p[1], type=p[2], first='') for p in self.profiles]
+        temp_keys = [ dict(display=p[0], key=p[1], type=p[2], first='') for p in self.profiles]
         temp_keys[0]['first'] = self.first_template
-        text = ''.join([self.input_template.format(**tk) for tk in temp_keys])
+        text = ''.join([ self.input_template.format(**tk) for tk in temp_keys ])
         return self.form_template.format(input_template=text)
 
 
@@ -514,4 +513,6 @@ class CustomSpawner(WrapSpawner):
     def clear_state(self):
         super().clear_state()
         self.child_profile = ''
+
 # vim: set ai expandtab softtabstop=4:
+
