@@ -148,6 +148,20 @@ class WrapSpawner(Spawner):
             else:
                 raise RuntimeError("No child spawner yet exists - can not get progress yet")
 
+    # Manually link server attribute since it is not a traitlet
+
+    @property
+    def server(self):
+        if not self.child_spawner:
+            self.construct_child()
+        return self.child_spawner.server
+
+    @server.setter
+    def server(self, server):
+        if not self.child_spawner:
+            self.construct_child()
+        self.child_spawner.server = server
+
 
 class ProfilesSpawner(WrapSpawner):
     """ProfilesSpawner - leverages the Spawner options form feature to allow user-driven
