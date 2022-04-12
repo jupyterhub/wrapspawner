@@ -431,7 +431,7 @@ class CustomSpawner(WrapSpawner):
     def options_from_form(self, formdata):
         # Default to first profile if somehow none is provided
         self._load_profiles_from_fs()
-        self.config[self.spawner_class]['batch_script'] = str(formdata['batch_command'])
+        self.config[self.spawner_class]['batch_script'] = str(formdata['batch_command'][0])
         return dict(profile=formdata.get('profile', [self.profiles[0][1]])[0])
 
     def _load_profiles_from_fs(self):
