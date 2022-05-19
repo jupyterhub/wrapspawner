@@ -326,15 +326,15 @@ class DockerProfilesSpawner(ProfilesSpawner):
         return self.form_template.format(input_template=text)
 
 
-class CustomSpawner(WrapSpawner):
-    """CustomSpawner allows batch commands to be displayed and customized
+class   BatchFilesSpawner(WrapSpawner):
+    """BatchFilesSpawner allows batch commands to be displayed and customized
     before launch by a user via a HTML textfield.
     These commands are divided into two categories: System and User.
     System commands are available to all users, and User
     commands are stored in the specific user's home directory. The filepaths
     for these are set in the jupyterhub config by the following variables:
-    c.CustomSpawner.system_profile_path
-    c.CustomSpawner.user_profile_path
+    c.BatchFilesSpawner.system_profile_path
+    c.BatchFilesSpawner.user_profile_path
     """
 
     profiles = List(
@@ -399,23 +399,35 @@ class CustomSpawner(WrapSpawner):
 
     options_form = Unicode()
 
+    spawner_class = Unicode(config = True,
+                            default_value="SlurmSpawner")
+
+    system_profile_path = Unicode(config=True,
+                                  help="Directory path where batch files are stored")
+
+    user_profile_path = Unicode(config=True,
+                                help="Path to users' homedirectories")
+
     def __init__(self, **kwargs):
         super().__init__(**kwargs)
-        if 'spawner_class' in kwargs['config']['CustomSpawner']:
-            self.spawner_class = kwargs['config']['CustomSpawner']['spawner_class']
+        '''
+        if 'spawner_class' in kwargs['config']['BatchFilesSpawner']:
+            self.spawner_class = kwargs['config']['BatchFilesSpawner']['spawner_class']
             pass
         else:
             self.spawner_class = 'SlurmSpawner'
 
-        if 'system_profile_path' in kwargs['config']['CustomSpawner']:
-            self.system_profile_path = kwargs['config']['CustomSpawner']['system_profile_path']
+
+        if 'system_profile_path' in kwargs['config']['BatchFilesSpawner']:
+            self.system_profile_path = kwargs['config']['BatchFilesSpawner']['system_profile_path']
         else:
             self.system_profile_path = os.path.dirname(self.config.JupyterHub.config_file) + "/jupyterhub/profiles"
 
-        if 'user_profile_path' in kwargs['config']['CustomSpawner']:
-            self.user_profile_path = kwargs['config']['CustomSpawner']['user_profile_path']
+        if 'user_profile_path' in kwargs['config']['BatchFilesSpawner']:
+            self.user_profile_path = kwargs['config']['BatchFilesSpawner']['user_profile_path']
         else:
             self.user_profile_path = None
+            '''
 
     def _options_form_default(self):
         self._load_profiles_from_fs()
