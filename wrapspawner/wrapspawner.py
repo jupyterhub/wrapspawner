@@ -212,8 +212,6 @@ class ProfilesSpawner(WrapSpawner):
             the first item starts selected."""
         )
 
-    options_form = Unicode()
-
     def _options_form_default(self):
         temp_keys = [ dict(display=p[0], key=p[1], type=p[2], first='') for p in self.profiles ]
         temp_keys[0]['first'] = self.first_template
