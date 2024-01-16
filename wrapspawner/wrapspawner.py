@@ -74,6 +74,8 @@ class WrapSpawner(Spawner):
                 hub  = self.hub,
                 authenticator = self.authenticator,
                 oauth_client_id = self.oauth_client_id,
+                cookie_options = self.cookie_options,
+                orm_spawner = self.orm_spawner,
                 server = self._server,
                 config = self.config,
                 **self.child_config
