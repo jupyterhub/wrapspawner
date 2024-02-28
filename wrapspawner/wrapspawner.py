@@ -24,6 +24,7 @@ import os
 import json
 import re
 import urllib.request
+import logging
 
 from tornado import gen, concurrent
 
@@ -211,6 +212,14 @@ class ProfilesSpawner(WrapSpawner):
             first = "checked" (taken from first_template) for the first item in the list, so that
             the first item starts selected."""
         )
+
+    def __init__(self, *args, **kwargs):
+        super(ProfilesSpawner, self).__init__(*args, **kwargs)
+
+        keys = [p[1] for p in self.profiles]
+        if len(set(keys)) != len(keys):
+            logging.warning(
+                "Invalid spawners profiles config, profiles keys are not unique")
 
     def _options_form_default(self):
         temp_keys = [ dict(display=p[0], key=p[1], type=p[2], first='') for p in self.profiles ]
