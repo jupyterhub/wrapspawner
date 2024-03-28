@@ -40,6 +40,9 @@ configuration of Spawner classes while permitting:
    * configuration of Spawner classes that don't natively implement `options_form`
    * administrator control of allowed configuration changes
    * runtime choice of which Spawner backend to launch
+   
+FilteredSpawner allows the definition of profiles that can be assigned only to authenticated users belonging to a specific set of groups.Based over the original ProfilesSpawner it exploits a specific additional configuration profile parameter to specify the set of allowed groups or a * wildcard for enabling that specific profile for all the users
+
 
 ### Example
 
@@ -68,6 +71,29 @@ running as a local process or one of two different Docker Images to run within `
           ('Docker Python 3', 'singleuser', 'dockerspawner.SystemUserSpawner', dict(image="jupyterhub/singleuser")),
           ('Docker Python 3 Scipy', 'scipy-notebook', 'dockerspawner.SystemUserSpawner', dict(image="jupyter/scipy-notebook")),
     ]
+   ```
+
+<b>FilteredSpawner</b> example
+   ```python
+   c.JupyterHub.spawner_class = 'wrapspawner.FilteredSpawner'
+   c.Spawner.http_timeout = 120
+   #------------------------------------------------------------------------------
+   # ProfilesSpawner configuration
+   #------------------------------------------------------------------------------
+   # List of profiles to offer for selection. Signature is:
+   #   List(Tuple( Unicode, Unicode, Type(Spawner), Dict, Unicode ))
+   # corresponding to profile display name, unique key, Spawner class,
+   # dictionary of spawner config options, comma separated list of authorized groups..
+   # 
+   # The first three values will be exposed in the input_template as {display},
+   # {key}, and {type}
+   #
+    c.ProfilesSpawner.default_profiles = [
+       ( "Sudospawner group1", 'sudospawner', 'sudospawner.SudoSpawner', {'cmd':['sudospawner-singleuser'], 'notebook_dir':''}, 'group1' ),
+       ( "Sudospawner group2", 'sudospawner', 'sudospawner.SudoSpawner', {'cmd':['sudospawner-singleuser'], 'notebook_dir':''}, 'group2' ),
+       ( "Global spawner", 'sudospawner', 'sudospawner.SudoSpawner', {'cmd':['sudospawner-singleuser'], 'notebook_dir':''}, '*' )
+
+]
    ```
 
 ## History
