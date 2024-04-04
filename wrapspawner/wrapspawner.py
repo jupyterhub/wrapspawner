@@ -32,7 +32,7 @@ from jupyterhub.spawner import LocalProcessSpawner, Spawner
 from traitlets import (
     Instance, Type, Tuple, List, Dict, Integer, Unicode, Float, Any
 )
-from traitlets import directional_link
+from traitlets import directional_link, validate
 
 # Only needed for DockerProfilesSpawner
 try:
@@ -185,6 +185,18 @@ class ProfilesSpawner(WrapSpawner):
             The first three values will be exposed in the input_template as {display}, {key}, and {type}"""
         )
 
+    @validate("profiles")
+    def _validate_profiles(self, proposal):
+        profiles = proposal.value
+
+        seen = set()
+        duplicated = {p[1] for p in profiles if p[1] in seen or seen.add(p[1])}
+        if len(duplicated):
+            logging.warning(
+                f"Invalid wrapspawner profiles, profiles keys are not unique : {duplicated}")
+
+        return profiles
+
     child_profile = Unicode()
 
     form_template = Unicode(
@@ -212,14 +224,6 @@ class ProfilesSpawner(WrapSpawner):
             first = "checked" (taken from first_template) for the first item in the list, so that
             the first item starts selected."""
         )
-
-    def __init__(self, *args, **kwargs):
-        super(ProfilesSpawner, self).__init__(*args, **kwargs)
-
-        keys = [p[1] for p in self.profiles]
-        if len(set(keys)) != len(keys):
-            logging.warning(
-                "Invalid spawners profiles config, profiles keys are not unique")
 
     def _options_form_default(self):
         temp_keys = [ dict(display=p[0], key=p[1], type=p[2], first='') for p in self.profiles ]
