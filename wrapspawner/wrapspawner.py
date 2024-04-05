@@ -32,7 +32,7 @@ from jupyterhub.spawner import LocalProcessSpawner, Spawner
 from traitlets import (
     Instance, Type, Tuple, List, Dict, Integer, Unicode, Float, Any
 )
-from traitlets import directional_link, validate
+from traitlets import directional_link, validate, TraitError
 
 # Only needed for DockerProfilesSpawner
 try:
@@ -192,7 +192,7 @@ class ProfilesSpawner(WrapSpawner):
         seen = set()
         duplicated = {p[1] for p in profiles if p[1] in seen or seen.add(p[1])}
         if len(duplicated):
-            logging.warning(
+            raise TraitError(
                 f"Invalid wrapspawner profiles, profiles keys are not unique : {duplicated}")
 
         return profiles
