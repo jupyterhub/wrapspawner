@@ -20,18 +20,17 @@ Using this mechanism, the administrator can provide users with a pre-approved
 selection of Spawner configurations.
 """
 
-import os
 import json
 import re
 import urllib.request
 
-from tornado import gen, concurrent
+from tornado import concurrent
 
 from jupyterhub.spawner import LocalProcessSpawner, Spawner
 from traitlets import (
-    Instance, Type, Tuple, List, Dict, Integer, Unicode, Float, Any
+    Instance, Type, Tuple, List, Dict, Unicode, Any
 )
-from traitlets import directional_link
+from traitlets import directional_link, validate, TraitError
 
 # Only needed for DockerProfilesSpawner
 try:
@@ -171,6 +170,18 @@ class ProfilesSpawner(WrapSpawner):
 
             The first three values will be exposed in the input_template as {display}, {key}, and {type}"""
         )
+
+    @validate("profiles")
+    def _validate_profiles(self, proposal):
+        profiles = proposal.value
+
+        seen = set()
+        duplicated = {p[1] for p in profiles if p[1] in seen or seen.add(p[1])}
+        if len(duplicated):
+            raise TraitError(
+                f"Invalid wrapspawner profiles, profiles keys are not unique : {duplicated}")
+
+        return profiles
 
     child_profile = Unicode()
 
