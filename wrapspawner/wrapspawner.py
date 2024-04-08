@@ -20,17 +20,15 @@ Using this mechanism, the administrator can provide users with a pre-approved
 selection of Spawner configurations.
 """
 
-import os
 import json
 import re
 import urllib.request
-import logging
 
-from tornado import gen, concurrent
+from tornado import concurrent
 
 from jupyterhub.spawner import LocalProcessSpawner, Spawner
 from traitlets import (
-    Instance, Type, Tuple, List, Dict, Integer, Unicode, Float, Any
+    Instance, Type, Tuple, List, Dict, Unicode, Any
 )
 from traitlets import directional_link, validate, TraitError
 
