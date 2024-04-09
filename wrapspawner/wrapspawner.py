@@ -186,8 +186,8 @@ class ProfilesSpawner(WrapSpawner):
     child_profile = Unicode()
 
     form_template = Unicode(
-        """<label for="profile">Select a job profile:</label>
-        <select class="form-control" name="profile" required autofocus>
+        """<label for="wrap_profile">Select a job profile:</label>
+        <select class="form-control" name="wrap_profile" required autofocus>
         {input_template}
         </select>
         """,
@@ -219,7 +219,7 @@ class ProfilesSpawner(WrapSpawner):
 
     def options_from_form(self, formdata):
         # Default to first profile if somehow none is provided
-        return dict(profile=formdata.get('profile', [self.profiles[0][1]])[0])
+        return dict(wrap_profile=formdata.get('wrap_profile', [self.profiles[0][1]])[0])
 
     # load/get/clear : save/restore child_profile (and on load, use it to update child class/config)
 
@@ -232,20 +232,20 @@ class ProfilesSpawner(WrapSpawner):
                 break
 
     def construct_child(self):
-        self.child_profile = self.user_options.get('profile', "")
+        self.child_profile = self.user_options.get('wrap_profile', "")
         self.select_profile(self.child_profile)
         super().construct_child()
 
     def load_child_class(self, state):
         try:
-            self.child_profile = state['profile']
+            self.child_profile = state['wrap_profile']
         except KeyError:
             self.child_profile = ''
         self.select_profile(self.child_profile)
 
     def get_state(self):
         state = super().get_state()
-        state['profile'] = self.child_profile
+        state['wrap_profile'] = self.child_profile
         return state
 
     def clear_state(self):
